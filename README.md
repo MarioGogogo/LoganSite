@@ -121,8 +121,10 @@ npm run deploy                                  # 部署
 
 ## 已实现 / 待办
 
-| 链路 | 状态 | 说明 |
+| 模块 | 状态 | 说明 |
 |---|---|---|
+| 前端部署 (Cloudflare Pages) | ✅ 已上线 | push main 自动构建部署 |
+| 后端部署 (Cloudflare Worker) | ✅ 已上线 | `wrangler deploy` 手动部署 |
 | H5 日志 - 明文 (v=0) | ✅ 完整可用 | 上报/查询/详情/搜索/下载 |
 | H5 日志 - 加密 (v=1) | ⚠️ 待调通 | 服务端 RSA 解密卡在 Workers Web Crypto 算法名 |
 | App 原生日志 | ❌ 未实现 | 需 R2 存储 + 二进制协议 + AES/CBC + GZIP |
@@ -145,6 +147,51 @@ npm run deploy                                  # 部署
 | `npm run db:init` | 本地 D1 建表 |
 | `npm run db:init:remote` | 线上 D1 建表 |
 | `npm run deploy` | 部署到 Cloudflare |
+
+---
+
+## 线上运维须知
+
+> 当前线上环境已部署并跑通。以下几点请知悉，方便日常维护。
+
+### 1. 数据持久性
+
+线上 D1 现在留有联调时灌入的**演示数据**（设备 `web-chrome-001`、`web-safari-002` 等）。它们是真实的线上数据，会一直存在，前端 `/web-list` 默认就能看到。
+
+如果想清空演示数据：
+
+```bash
+cd logan-worker
+npx wrangler d1 execute logan-db --remote --command="DELETE FROM web_detail; DELETE FROM web_task;"
+```
+
+想重新灌演示数据：
+
+```bash
+node scripts/seed-demo.cjs https://logan-worker.jerrychen239355.workers.dev
+```
+
+### 2. 密钥安全
+
+生产 RSA 私钥目前用的是**测试密钥对**（公钥/私钥都公开在 `logan-worker/.dev.vars` 注释和 `scripts/gen-h5-payload.cjs` 里，仅用于联调）。
+
+⚠️ 如果以后要走 **v=1 加密上报**，**务必**：
+
+1. 生成一对自己的 RSA 密钥（`openssl` 或任意工具）
+2. 公钥给 H5 SDK（客户端加密用）
+3. 私钥用 `npx wrangler secret put H5_RSA_PRIVATE_KEY` 重新注入（覆盖测试密钥）
+
+```bash
+cd logan-worker
+npx wrangler secret put H5_RSA_PRIVATE_KEY   # 粘贴你的新私钥（PKCS8 base64）
+```
+
+### 3. 待办（未完成的功能）
+
+以下链路尚未实现，详见上方「已实现 / 待办」表：
+
+- **v=1 加密上报**：服务端 RSA 解密待调通（Workers Web Crypto 算法名问题）
+- **App 原生日志**：需引入 R2 对象存储 + 自定义二进制协议解析 + AES/CBC + GZIP 解压
 
 ---
 
