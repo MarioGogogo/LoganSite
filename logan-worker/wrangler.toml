@@ -1,0 +1,16 @@
+name = "logan-worker"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# 兼容标志：启用 nodejs_compat 以便使用 Buffer 等
+compatibility_flags = ["nodejs_compat"]
+
+# D1 数据库绑定（部署前用 `wrangler d1 create logan-db` 创建后填入 database_id）
+[[d1_databases]]
+binding = "DB"
+database_name = "logan-db"
+database_id = "accfb605-45b0-4d2e-a6f3-4080af5af0e5"
+
+# 密钥通过 `wrangler secret put` 注入，不在配置文件里明文：
+#   wrangler secret put H5_RSA_PRIVATE_KEY   # PKCS8 base64（解密每条日志自带的 AES key）
+# 注意：H5 的 RSA 私钥与 App 原生日志的 AES_KEY/IV 是两套，本阶段只实现 H5 链路。
