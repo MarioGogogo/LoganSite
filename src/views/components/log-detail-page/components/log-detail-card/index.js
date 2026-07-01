@@ -3,7 +3,7 @@ import { Card, Button } from "antd";
 import moment from "moment";
 import ReactJson from "react-json-view";
 import "./style.scss";
-import {nativeLogTypeConfigs, webLogTypeConfigs} from "../../../../../consts/logtypes";
+import {getLogTypeConfig} from "../../../../../common/logtype-helper";
 
 const titleByKey = {
   "id": "日志编号",
@@ -99,8 +99,7 @@ class LogDetailCard extends Component {
   };
 
   conposeSnippetComponents = () => {
-    const { logDetail, type } = this.props;
-    const logTypesConfig = type === "native" ? nativeLogTypeConfigs : webLogTypeConfigs;
+    const { logDetail } = this.props;
     if (logDetail !== null) {
       const cardTitle = (
         <header>
@@ -118,12 +117,7 @@ class LogDetailCard extends Component {
         }
         let value = "";
         if (key === "logType") {
-          const config = logTypesConfig.find(config => config.logType === logDetail[key]);
-          if (config === undefined) {
-            value = "未知日志";
-          } else {
-            value = config["logTypeName"];
-          }
+          value = getLogTypeConfig(logDetail[key]).logTypeName;
         } else if (key === "logTime") {
           value = moment(logDetail[key]).format('YYYY-MM-DD HH:mm:ss.SSS');
         } else {

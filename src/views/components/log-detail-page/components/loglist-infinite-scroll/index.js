@@ -3,7 +3,7 @@ import {Timeline, Divider, Spin, Icon} from "antd";
 import {isEqual, findIndex} from "lodash";
 import InfiniteScroll from "react-infinite-scroller";
 import {LOG_MOVE_DISTANCE, LAST_LOAD_MIN_SPAN} from "./consts";
-import {nativeLogTypeConfigs, webLogTypeConfigs} from "../../../../../consts/logtypes";
+import {getLogTypeConfig} from "../../../../../common/logtype-helper";
 import {NUMBER_OF_LOG_IN_SINGLE_PAGE} from "../../../../../consts/pagination"
 import moment from "moment";
 import style from "./style.module.scss";
@@ -290,15 +290,7 @@ export default LogListInfiniteScroll;
 
 /// 以下全为辅助组件
 function TimelineItem({item, index, focusLogId, type, updateFocusLogId}) {
-  const LogTypes = type === "native" ? nativeLogTypeConfigs : webLogTypeConfigs;
-  let logType = LogTypes.find(type => type.logType === item.logType);
-  if (logType === undefined) {
-    logType = {
-      logType: 0,
-      logTypeName: "未知日志",
-      displayColor: "#000000"
-    };
-  }
+  const logType = getLogTypeConfig(item.logType);
   return (
     <Timeline.Item
       className={style["timeline-item"]}

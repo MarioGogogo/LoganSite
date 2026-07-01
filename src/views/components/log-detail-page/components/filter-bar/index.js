@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Checkbox, Row, Col, Divider, Button, Input, Radio, Icon, Dropdown } from "antd";
 import "antd/dist/antd.css";
 import "./style.scss";
-import {nativeLogTypeConfigs, webLogTypeConfigs} from "../../../../../consts/logtypes";
+import {getLogTypeConfig} from "../../../../../common/logtype-helper";
 
 const RadioGroup = Radio.Group;
 
@@ -16,8 +16,7 @@ class FilterBar extends Component {
   };
 
   render() {
-    const { filterConditions, logTypesInTask, type, sorted } = this.props;
-    const LOGTYPES_CONFIG = type === "native" ? nativeLogTypeConfigs : webLogTypeConfigs;
+    const { filterConditions, logTypesInTask, sorted } = this.props;
     const LogTypeMultiCheck = (
       <div>
         <Checkbox.Group
@@ -37,32 +36,18 @@ class FilterBar extends Component {
           </Row>
           <Divider style={{ margin: "8px 0 5px" }} />
           {logTypesInTask.map(logType => {
-            const config = LOGTYPES_CONFIG.find(item => item.logType === logType);
-            if (config === undefined) {
-              return (
-                <Row key={logType} className="log-type-checkitem">
-                  <Col>
-                    <Checkbox value={logType}>
-                      <div className="check-item-wrapper">
-                        <span style={{ color: "#000000" }}>未知类型</span>
-                      </div>
-                    </Checkbox>
-                  </Col>
-                </Row>
-              );
-            } else {
-              return (
-                <Row key={config.logType} className="log-type-checkitem">
-                  <Col>
-                    <Checkbox value={config.logType}>
-                      <div className="check-item-wrapper">
-                        <span style={{color: config.displayColor}}>{config.logTypeName}</span>
-                      </div>
-                    </Checkbox>
-                  </Col>
-                </Row>
-              );
-            }
+            const config = getLogTypeConfig(logType);
+            return (
+              <Row key={config.logType} className="log-type-checkitem">
+                <Col>
+                  <Checkbox value={config.logType}>
+                    <div className="check-item-wrapper">
+                      <span style={{color: config.displayColor}}>{config.logTypeName}</span>
+                    </div>
+                  </Checkbox>
+                </Col>
+              </Row>
+            );
           })}
         </Checkbox.Group>
       </div>

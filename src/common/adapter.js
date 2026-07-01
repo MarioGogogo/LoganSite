@@ -1,17 +1,9 @@
-import {nativeLogTypeConfigs, webLogTypeConfigs} from "../consts/logtypes";
+import {getLogTypeConfig} from "./logtype-helper";
 
 export const convertBriefsToMinimapBriefs = (briefs, type) => {
   let ret = [];
-  const LogTypeRules = type === "native" ? nativeLogTypeConfigs : webLogTypeConfigs;
   for (let brief of briefs) {
-    let logType = LogTypeRules.find(rule => rule.logType === brief.logType);
-    if (logType === undefined) {
-      logType = {
-        logType: 0,
-        logTypeName: "未知日志",
-        displayColor: "#000000"
-      };
-    }
+    const logType = getLogTypeConfig(brief.logType);
 
     if (type === "native") {
       ret.push({
