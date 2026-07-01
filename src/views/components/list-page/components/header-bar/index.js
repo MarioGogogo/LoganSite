@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import { Input, Select, DatePicker, Icon, Layout, Button, message, Modal } from "antd";
 import "antd/dist/antd.css";
 import "./style.scss";
-import ClickShare from "../../../../../common/components/ClickShare/ClickShare"
 import moment from "moment";
 
 const { Option } = Select;
@@ -80,13 +79,14 @@ class HeaderBar extends Component {
               }
             />
           </Input.Group>
-          <Button data-test="search-button" icon="search" type="primary" onClick={this.handleSearch}>
+          <Button data-test="search-button" className="search-button" icon="search" type="primary" onClick={this.handleSearch}>
             搜索
           </Button>
           {type === "web" && (
-            <Button.Group className="clear-buttons">
+            <>
               <Button
                 data-test="clear-device-button"
+                className="clear-device-button"
                 icon="delete"
                 disabled={!filterConditions.deviceId}
                 onClick={this.handleClearDeviceLogs}
@@ -95,28 +95,19 @@ class HeaderBar extends Component {
               </Button>
               <Button
                 data-test="clear-all-button"
+                className="clear-all-button"
                 icon="delete"
                 type="danger"
                 onClick={this.handleClearAllLogs}
               >
                 清空全部日志
               </Button>
-            </Button.Group>
+            </>
           )}
         </div>
-        <ClickShare buttonId={"share-button"} shareUrl={this.composeShareUrl()} buttonText={"分享"} />
       </Header>
     );
   }
-
-  composeShareUrl = () => {
-    const {filterConditions, type, pathname} = this.props;
-    if (type === "native") {
-      return `${window.location.origin}/#${pathname}?deviceId=${filterConditions.deviceId}&beginTime=${moment(filterConditions.beginTime).valueOf()}&endTime=${moment(filterConditions.endTime).valueOf()}&platform=${filterConditions.platform}`
-    } else {
-      return `${window.location.origin}/#${pathname}?deviceId=${filterConditions.deviceId}&beginTime=${moment(filterConditions.beginTime).valueOf()}&endTime=${moment(filterConditions.endTime).valueOf()}`
-    }
-  };
 
   // event handlers
   handleSearch = () => {

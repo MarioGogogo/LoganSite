@@ -3,27 +3,40 @@
   min-width: 1000px;
   background: #fff;
   padding: 0 16px;
-  justify-content: space-between;
   align-items: center;
   position: relative;
 }
 
 .tasklist-filterbar-container {
   display: flex;
+  align-items: center;
   flex: 1;
-  margin: 0 16px;
+  margin: 0;
+  /* 所有直接子元素之间统一右间距，避免挤压/换行 */
+  > * {
+    margin-right: 12px;
+  }
+  > *:last-child {
+    margin-right: 0;
+  }
 }
 
 .filterbar-group {
   display: flex !important;
   flex: 1;
+  /* Input.Group compact 内部多个控件紧密相连，整组右侧留统一间距（由父容器的 > * 规则给） */
 }
 
 .filter-input {
   flex: 1;
-  min-width: 350px;
+  min-width: 200px;
 }
 
-.clear-buttons {
-  margin-left: 16px;
+.search-button {
+  flex-shrink: 0;
+}
+
+.clear-device-button,
+.clear-all-button {
+  flex-shrink: 0;
 }
