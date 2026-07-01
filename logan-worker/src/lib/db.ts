@@ -37,7 +37,10 @@ function rowToTask(r: WebTaskRow): WebLogTask {
 
 // ---------- web_task ----------
 
-/** saveTask：先查重 (logDate,deviceId,pageNum)，存在则更新 content，否则插入。返回是否成功。 */
+/** saveTask：先查重 (logDate,deviceId,pageNum)，存在则更新 content，否则插入。返回是否成功。
+ *  注意：覆盖时必须重置 status=NORMAL、刷新 add_time/update_time，并清掉该 task 的旧明细行，
+ *  否则下次 detailIndex 看到已 ANALYZED 就跳过懒解析，列表页永远显示旧明细
+ *  （RN 端同 deviceId+同一天反复 pageNo=1 上报会命中此场景）。 */
 export async function saveTask(
   db: D1Database,
   task: Omit<WebLogTask, 'taskId' | 'status' | 'updateTime'>,
@@ -48,7 +51,13 @@ export async function saveTask(
     .bind(task.logDate, task.deviceId, task.pageNum)
     .first<WebTaskRow>();
   if (exist) {
-    await db.prepare('UPDATE web_task SET content=? WHERE id=?').bind(task.content, exist.id).run();
+    // 1) 覆盖 content + 重置状态为未解析 + 刷新时间，触发下次 detailIndex 重新懒解析
+    await db
+      .prepare('UPDATE web_task SET content=?, status=?, add_time=?, update_time=? WHERE id=?')
+      .bind(task.content, status, task.addTime, task.addTime, exist.id)
+      .run();
+    // 2) 删除该 task 旧的明细行，避免重新解析后明细重复累加
+    await db.prepare('DELETE FROM web_detail WHERE task_id=?').bind(exist.id).run();
     return true;
   }
   const res = await db

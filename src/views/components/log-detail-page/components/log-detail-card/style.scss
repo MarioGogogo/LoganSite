@@ -35,6 +35,24 @@
     .log-content {
       padding-top: 12px;
       word-break: break-all;
+
+      .log-content-prefix {
+        margin-bottom: 8px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      .log-content-json {
+        padding: 8px 12px;
+        background: #fafafa;
+        border: solid 1px #e8e8e8;
+        border-radius: 4px;
+
+        /* react-json-view 内部容器去掉默认外边距，与卡片对齐 */
+        > div {
+          margin: 0;
+        }
+      }
     }
   }
 }
