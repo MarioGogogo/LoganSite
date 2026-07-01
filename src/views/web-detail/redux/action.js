@@ -19,6 +19,17 @@ import {
 import {convertBriefsToLoglistInfiniteScrollBriefs} from "../../../common/adapter"
 import {getPageOfLogIdsBySingleLogId} from "../../../common/util";
 
+/**
+ * 按 sorted 状态对 briefs 排序（detailId 升序 = 旧日志在前；降序 = 新日志在前）。
+ * 升降序共用同一逻辑，避免初次加载与切换排序时排序不一致。
+ * @param briefs 后端返回的原始 brief 数组（每项含 detailId）
+ * @param sorted true=升序, false=降序
+ */
+function sortBriefsByState(briefs, sorted) {
+  const sortedBriefs = sortBy(briefs, item => item.detailId);
+  return sorted === false ? reverse(sortedBriefs) : sortedBriefs;
+}
+
 
 export function fetchPageInitData(taskId, focusLogId) {
   return (dispatch, getState) => {
@@ -29,6 +40,9 @@ export function fetchPageInitData(taskId, focusLogId) {
     ])
       .then(([infoData, briefData]) => {
         briefData = flattenDeep(briefData);
+
+        // 初次加载即按当前 sorted 状态排序（默认降序：新日志在上）
+        briefData = sortBriefsByState(briefData, getState().webLogDetail.sorted);
 
         const briefs = briefData.map(item => ({
           id: item.detailId,
@@ -151,6 +165,8 @@ export function updateFilterConditions(filterConditions) {
       return fetchWebBriefsApi(logInfo.taskId, filterConditions.logTypes.join(","), filterConditions.keyword)
         .then(data => {
           let newBriefs = flattenDeep(data);
+          // 筛选后也按当前 sorted 状态排序，保持与列表一致
+          newBriefs = sortBriefsByState(newBriefs, getState().webLogDetail.sorted);
           dispatch({
             type: WEB_UPDATE_BRIEFS,
             briefs: newBriefs
@@ -211,13 +227,7 @@ export function updateSorted(sorted) {
       return fetchWebBriefsApi(logInfo.taskId, filterConditions.logTypes.join(","), filterConditions.keyword)
         .then(briefs => {
           const newBriefs = flattenDeep(briefs);
-          let sortedBriefs = [];
-          if (sorted) {
-            sortedBriefs = sortBy(newBriefs, item => item.detailId);
-          } else {
-            sortedBriefs = sortBy(newBriefs, item => item.detailId);
-            sortedBriefs = reverse(sortedBriefs);
-          }
+          const sortedBriefs = sortBriefsByState(newBriefs, sorted);
           const detailIds = getPageOfLogIdsBySingleLogId(convertBriefsToLoglistInfiniteScrollBriefs(sortedBriefs, "web"), sortedBriefs[0].detailId);
           return Promise.all([detailIds, sortedBriefs]);
         }).then(([detailIds, sortedBriefs]) => {

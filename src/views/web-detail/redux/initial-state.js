@@ -13,6 +13,6 @@ export const initialState = {
     keyword: "",
     logTypes: [],
   },
-  sorted: true
+  sorted: false
 
 };
