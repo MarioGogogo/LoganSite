@@ -1,7 +1,8 @@
 /**
  * H5 日志路由（对应 Java WebLogController + WebLogUploadController）。
  * 所有路径与原后端完全一致，保证 LoganSite 前端零改动：
- *   POST /logan/web/upload.json
+ *   POST   /logan/web/upload.json
+ *   DELETE /logan/web/clear.json   （新增：清空日志，可选 deviceId）
  *   GET  /logan/web/search.json
  *   GET  /logan/web/latest.json
  *   GET  /logan/web/detailIndex.json
@@ -14,6 +15,8 @@
 import { Hono } from 'hono';
 import {
   batchInsertDetails,
+  clearAllLogs,
+  clearLogsByDevice,
   latestTasks,
   matchDetails,
   queryDetailById,
@@ -103,6 +106,21 @@ webRouter.post('/logan/web/upload.json', async (c) => {
     TaskStatus.NORMAL,
   );
   return c.json(success ? ok(true) : exception('save log error'));
+});
+
+/** DELETE /logan/web/clear.json —— 清空日志。
+ *  不传 deviceId：清空全部（web_task + web_detail）。
+ *  传 deviceId：只清该设备的日志。返回 { code:200, data:{ tasks: 删除的 task 数 } }。
+ *  注意：无鉴权（内网工具场景，与 upload/search 一致）。 */
+webRouter.delete('/logan/web/clear.json', async (c) => {
+  const deviceId = c.req.query('deviceId');
+  let tasks: number;
+  if (deviceId) {
+    tasks = await clearLogsByDevice(c.env.DB, deviceId);
+  } else {
+    tasks = await clearAllLogs(c.env.DB);
+  }
+  return c.json(ok({ tasks }));
 });
 
 interface UploadModel {

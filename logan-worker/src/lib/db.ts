@@ -121,6 +121,32 @@ export async function updateTaskStatus(db: D1Database, taskId: number, status: n
   await db.prepare('UPDATE web_task SET status=? WHERE id=?').bind(status, taskId).run();
 }
 
+// ---------- 清空日志 ----------
+
+/** 清空全部日志：先删明细再删任务（detail 经 task_id 关联 task）。返回影响的 task 行数。 */
+export async function clearAllLogs(db: D1Database): Promise<number> {
+  await db.prepare('DELETE FROM web_detail').run();
+  const res = await db.prepare('DELETE FROM web_task').run();
+  return res.meta?.changes ?? 0;
+}
+
+/** 清空指定 deviceId 的日志：先查该设备 taskIds，级联删 detail，再删 task。 */
+export async function clearLogsByDevice(db: D1Database, deviceId: string): Promise<number> {
+  // 1) 取该设备所有 taskId
+  const { results } = await db
+    .prepare('SELECT id FROM web_task WHERE device_id=?')
+    .bind(deviceId)
+    .all<{ id: number }>();
+  const ids = (results ?? []).map((r) => r.id);
+  if (ids.length === 0) return 0;
+  // 2) 删这些 task 的明细（D1 不支持 DELETE ... JOIN，分两步）
+  const placeholders = ids.map(() => '?').join(',');
+  await db.prepare(`DELETE FROM web_detail WHERE task_id IN (${placeholders})`).bind(...ids).run();
+  // 3) 删该设备任务
+  const res = await db.prepare('DELETE FROM web_task WHERE device_id=?').bind(deviceId).run();
+  return res.meta?.changes ?? 0;
+}
+
 // ---------- web_detail ----------
 
 /** 批量插入明细。原 Java 用单条多 VALUES；这里用 D1 batch（每行一条 INSERT）。 */

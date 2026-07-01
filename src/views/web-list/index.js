@@ -4,7 +4,7 @@ import { every, some } from "lodash";
 import { parse } from "qs";
 import moment from "moment";
 import ListPage from "../components/list-page/index";
-import { updateFilterConditions, fetchTasks, fetchInitData } from "./redux/action";
+import { updateFilterConditions, fetchTasks, fetchInitData, clearAllLogs, clearLogsByDevice } from "./redux/action";
 import {message} from "antd";
 
 
@@ -67,7 +67,9 @@ export function mapDispatchToProps(dispatch) {
   return {
     updateFilterConditions: newFilterConditions => dispatch(updateFilterConditions(newFilterConditions)),
     fetchTasks: (filterConditions) => dispatch(fetchTasks(filterConditions)),
-    fetchInitData: () => dispatch(fetchInitData())
+    fetchInitData: () => dispatch(fetchInitData()),
+    clearAllLogs: () => dispatch(clearAllLogs()),
+    clearLogsByDevice: (deviceId) => dispatch(clearLogsByDevice(deviceId))
   };
 }
 

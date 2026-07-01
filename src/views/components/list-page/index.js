@@ -28,7 +28,7 @@ const ICON_BY_PLATFORM = {
 
 class ListPage extends Component {
   render() {
-    const { filterConditions, tasks, updateFilterConditions, fetchTasks, loading, type } = this.props;
+    const { filterConditions, tasks, updateFilterConditions, fetchTasks, loading, type, clearAllLogs, clearLogsByDevice } = this.props;
     return (
       <div className={"listpage-container"}>
         <HeaderBar
@@ -36,6 +36,8 @@ class ListPage extends Component {
           updateFilterConditions={updateFilterConditions}
           fetchTasks={fetchTasks}
           type={type}
+          clearAllLogs={clearAllLogs}
+          clearLogsByDevice={clearLogsByDevice}
         />
         <div className={"table-container"}>
             {

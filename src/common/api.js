@@ -90,6 +90,17 @@ export function fetchWebTaskApi(deviceId, beginTime, endTime) {
   })
 }
 
+// 清空日志：不传 deviceId 清全部，传 deviceId 只清该设备
+export function clearAllWebLogsApi() {
+  return instance.delete("/logan/web/clear.json");
+}
+
+export function clearWebLogsByDeviceApi(deviceId) {
+  return instance.delete("/logan/web/clear.json", {
+    params: { deviceId }
+  });
+}
+
 export function fetchWebBriefsApi(taskId, logTypes, keyword) {
   return instance.get("/logan/web/detailIndex.json", {
     params: {

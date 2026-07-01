@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import {connect} from "react-redux";
 import PropTypes from "prop-types";
-import { Input, Select, DatePicker, Icon, Layout, Button, message } from "antd";
+import { Input, Select, DatePicker, Icon, Layout, Button, message, Modal } from "antd";
 import "antd/dist/antd.css";
 import "./style.scss";
 import ClickShare from "../../../../../common/components/ClickShare/ClickShare"
@@ -83,6 +83,26 @@ class HeaderBar extends Component {
           <Button data-test="search-button" icon="search" type="primary" onClick={this.handleSearch}>
             搜索
           </Button>
+          {type === "web" && (
+            <Button.Group className="clear-buttons">
+              <Button
+                data-test="clear-device-button"
+                icon="delete"
+                disabled={!filterConditions.deviceId}
+                onClick={this.handleClearDeviceLogs}
+              >
+                清空该设备
+              </Button>
+              <Button
+                data-test="clear-all-button"
+                icon="delete"
+                type="danger"
+                onClick={this.handleClearAllLogs}
+              >
+                清空全部日志
+              </Button>
+            </Button.Group>
+          )}
         </div>
         <ClickShare buttonId={"share-button"} shareUrl={this.composeShareUrl()} buttonText={"分享"} />
       </Header>
@@ -120,6 +140,44 @@ class HeaderBar extends Component {
       })
     }
 
+  };
+
+  // 清空全部日志（仅 web）：高危，二次确认
+  handleClearAllLogs = () => {
+    const { clearAllLogs } = this.props;
+    Modal.confirm({
+      title: "清空全部日志",
+      content: "将删除所有设备的全部日志（任务 + 明细），此操作不可恢复，确定继续？",
+      okText: "确认清空",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: () => {
+        return clearAllLogs().then((data) => {
+          message.success(`已清空全部日志（删除 ${data && data.tasks != null ? data.tasks : 0} 条任务）`);
+        });
+      }
+    });
+  };
+
+  // 清空当前 deviceId 的日志（仅 web）：高危，二次确认
+  handleClearDeviceLogs = () => {
+    const { filterConditions, clearLogsByDevice } = this.props;
+    if (!filterConditions.deviceId) {
+      message.warn("请先填写设备编号");
+      return;
+    }
+    Modal.confirm({
+      title: `清空设备 ${filterConditions.deviceId} 的日志`,
+      content: `将删除该设备的全部日志，此操作不可恢复，确定继续？`,
+      okText: "确认清空",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: () => {
+        return clearLogsByDevice(filterConditions.deviceId).then((data) => {
+          message.success(`已清空该设备日志（删除 ${data && data.tasks != null ? data.tasks : 0} 条任务）`);
+        });
+      }
+    });
   };
 
   handleDeviceIdChange = e => {
