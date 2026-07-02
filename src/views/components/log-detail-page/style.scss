@@ -28,6 +28,21 @@
       display: flex;
       flex: 1;
       height: 100%;
+
+      .layout-splitter {
+        width: 6px;
+        height: 100%;
+        cursor: col-resize;
+        background-color: transparent;
+        transition: background-color 0.2s;
+        margin: 0 4px;
+        border-radius: 3px;
+        flex-shrink: 0;
+
+        &:hover, &:active {
+          background-color: #1890ff;
+        }
+      }
     }
   }
 }

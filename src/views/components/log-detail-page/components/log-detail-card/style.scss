@@ -48,8 +48,14 @@
         border: solid 1px #e8e8e8;
         border-radius: 4px;
 
+        .json-toolbar {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+
         /* react-json-view 内部容器去掉默认外边距，与卡片对齐 */
-        > div {
+        > div:not(.json-toolbar) {
           margin: 0;
         }
       }

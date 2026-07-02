@@ -64,15 +64,71 @@ class TimeMiniMap extends Component {
   componentWillUnmount() {
     document.removeEventListener("mousemove", this.onMouseMove);
     document.removeEventListener("click", this.onClick);
+    document.removeEventListener("mousedown", this.onMouseDown);
+    document.removeEventListener("mouseup", this.onMouseUp);
   }
+
+  _getCanvasOffset = event => {
+    const canvas = this.$container ? this.$container.querySelector("canvas") : null;
+    if (!canvas) return { offsetX: 0, offsetY: 0 };
+    const rect = canvas.getBoundingClientRect();
+    return {
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top
+    };
+  };
+
+  onMouseDown = event => {
+    const canvas = this.$container ? this.$container.querySelector("canvas") : null;
+    if (event.target === canvas) {
+      const { offsetX, offsetY } = this._getCanvasOffset(event);
+      if (this._isInTimeline(offsetX, offsetY)) {
+        this.isDragging = true;
+        this.handleDrag(offsetX, offsetY);
+        document.body.style.userSelect = "none";
+        document.body.style.cursor = "ns-resize";
+      }
+    }
+  };
+
+  onMouseUp = () => {
+    if (this.isDragging) {
+      this.isDragging = false;
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    }
+  };
+
+  handleDrag = (offsetX, offsetY) => {
+    const { data, rollingListManually } = this.props;
+    if (!data || data.length === 0 || !rollingListManually) return;
+    const relativeY = Math.max(0, Math.min(offsetY - this.timelineMarginTop, this.timelineHeight));
+    const ratio = relativeY / this.timelineHeight;
+    const logIndex = Math.min(Math.floor(ratio * data.length), data.length - 1);
+    if (logIndex >= 0) {
+      rollingListManually(logIndex);
+    }
+  };
 
   onMouseMove = event => {
     const { data } = this.props;
+    const { offsetX, offsetY } = this._getCanvasOffset(event);
 
-    if (this._isInTimeline(event.offsetX, event.offsetY)) {
-      const logIndex = this._calculateLogIndexFromCoordinate(event.offsetX, event.offsetY - this.timelineMarginTop);
+    if (this.isDragging) {
+      this.handleDrag(offsetX, offsetY);
+      const displayY = Math.max(this.timelineMarginTop, Math.min(offsetY, this.timelineMarginTop + this.timelineHeight));
+      this.hoverMark.y(displayY);
+      if (!this.hoverMark.isVisible()) {
+        this.hoverMark.show();
+      }
+      this.stage.draw();
+      return;
+    }
 
-      if (logIndex !== null && event.target.localName === "canvas") {
+    if (this._isInTimeline(offsetX, offsetY)) {
+      const logIndex = this._calculateLogIndexFromCoordinate(offsetX, offsetY - this.timelineMarginTop);
+
+      if (logIndex !== null) {
         this.setState({
           showToolTip: true,
           toolTipX: this.$container.clientWidth + this.$container.offsetLeft,
@@ -80,7 +136,7 @@ class TimeMiniMap extends Component {
           hoveredLog: data[logIndex]
         });
       }
-      this.hoverMark.y(event.offsetY);
+      this.hoverMark.y(offsetY);
       if (!this.hoverMark.isVisible()) {
         this.hoverMark.show();
       }
@@ -92,13 +148,16 @@ class TimeMiniMap extends Component {
         this.hoverMark.hide();
       }
     }
-    if (event.target.localName === "canvas") {
+    const canvas = this.$container ? this.$container.querySelector("canvas") : null;
+    if (event.target === canvas || this.isDragging) {
       this.stage.draw();
     }
   };
 
   onClick = event => {
-    if (this._isInTimeline(event.offsetX, event.offsetY) && event.target.localName === "canvas") {
+    const { offsetX, offsetY } = this._getCanvasOffset(event);
+    const canvas = this.$container ? this.$container.querySelector("canvas") : null;
+    if (this._isInTimeline(offsetX, offsetY) && event.target === canvas) {
       const { updateFocusLogId } = this.props;
       if (this.state.hoveredLog !== null) {
         updateFocusLogId(this.state.hoveredLog.id);
@@ -237,8 +296,11 @@ class TimeMiniMap extends Component {
   };
 
   _initMouseEvent = () => {
+    this.isDragging = false;
     document.addEventListener("mousemove", this.onMouseMove);
     document.addEventListener("click", this.onClick);
+    document.addEventListener("mousedown", this.onMouseDown);
+    document.addEventListener("mouseup", this.onMouseUp);
   };
 
   _isInTimeline = (x, y) => {

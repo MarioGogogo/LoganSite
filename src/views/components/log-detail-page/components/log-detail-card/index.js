@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Card, Button } from "antd";
+import { Card, Button, Tooltip, message } from "antd";
 import moment from "moment";
 import ReactJson from "react-json-view";
 import "./style.scss";
@@ -47,16 +47,43 @@ function tryExtractJson(content) {
 }
 
 /** 渲染日志内容：JSON 美化展示，否则纯文本 */
-function renderLogContent(content) {
+function renderLogContent(content, { collapsed, onToggleCollapsed }) {
   const extracted = tryExtractJson(content);
   if (extracted) {
     return (
       <div className="log-content-json">
         {extracted.prefix && <div className="log-content-prefix">{extracted.prefix}</div>}
+        <div className="json-toolbar">
+          <Tooltip title={collapsed ? "展开全部" : "收起全部"}>
+            <Button
+              size="small"
+              icon={collapsed ? "folder-open" : "folder"}
+              onClick={onToggleCollapsed}
+            >
+              {collapsed ? "展开" : "收起"}
+            </Button>
+          </Tooltip>
+          <Tooltip title="复制完整 JSON">
+            <Button
+              size="small"
+              icon="copy"
+              onClick={() => {
+                try {
+                  navigator.clipboard.writeText(JSON.stringify(extracted.json, null, 2));
+                  message.success("已复制 JSON");
+                } catch (e) {
+                  message.error("复制失败");
+                }
+              }}
+            >
+              复制
+            </Button>
+          </Tooltip>
+        </div>
         <ReactJson
           src={extracted.json}
           name={false}
-          collapsed={false}
+          collapsed={collapsed}
           enableClipboard={true}
           displayDataTypes={false}
           displayObjectSize={false}
@@ -70,6 +97,16 @@ function renderLogContent(content) {
 }
 
 class LogDetailCard extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      collapsed: false
+    };
+  }
+
+  handleToggleCollapsed = () => {
+    this.setState(prev => ({ collapsed: !prev.collapsed }));
+  };
 
   render() {
     const { focusLogId, logDetail } = this.props;
@@ -81,13 +118,17 @@ class LogDetailCard extends Component {
         <Card
             className="detail-information-container"
             title={cardTitle}
-            extra={closeButton}>
+            extra={closeButton}
+            style={this.props.style}>
           <div className="metadata">
             { metaDatas }
           </div>
           {logDetail && <div className="log-content">
             日志信息:<br />
-            { renderLogContent(logDetail["content"]) }
+            { renderLogContent(logDetail["content"], {
+              collapsed: this.state.collapsed,
+              onToggleCollapsed: this.handleToggleCollapsed
+            }) }
           </div>}
         </Card>
       );

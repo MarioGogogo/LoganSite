@@ -16,6 +16,40 @@ import {fetchNativeDownloadUrlApi, fetchWebDownloadUrlApi} from "../../../common
 
 
 class LogDetailPage extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      detailWidth: 500
+    };
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("mousemove", this.handleSplitterMouseMove);
+    document.removeEventListener("mouseup", this.handleSplitterMouseUp);
+  }
+
+  handleSplitterMouseDown = (e) => {
+    e.preventDefault();
+    this.startX = e.clientX;
+    this.startWidth = this.state.detailWidth;
+    document.addEventListener("mousemove", this.handleSplitterMouseMove);
+    document.addEventListener("mouseup", this.handleSplitterMouseUp);
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+  };
+
+  handleSplitterMouseMove = (e) => {
+    const deltaX = e.clientX - this.startX;
+    const newWidth = Math.max(350, Math.min(1200, this.startWidth - deltaX));
+    this.setState({ detailWidth: newWidth });
+  };
+
+  handleSplitterMouseUp = () => {
+    document.removeEventListener("mousemove", this.handleSplitterMouseMove);
+    document.removeEventListener("mouseup", this.handleSplitterMouseUp);
+    document.body.style.userSelect = "";
+    document.body.style.cursor = "";
+  };
 
   render() {
     const {
@@ -69,6 +103,7 @@ class LogDetailPage extends Component {
                 endIndex={highlightEndIndex}
                 updateFocusLogId={updateFocusLogId}
                 updateHighLightIndex={updateHighLightIndex}
+                rollingListManually={this.rollingListManually}
               />
             }
             <LogListInfiniteScroll
@@ -83,11 +118,18 @@ class LogDetailPage extends Component {
               fetchTaskDetail={fetchTaskDetail}
               rollingListManually={this.rollingListManually}
             />
+            {focusLogId !== -1 && (
+              <div
+                className="layout-splitter"
+                onMouseDown={this.handleSplitterMouseDown}
+              />
+            )}
             <LogDetailCard
               type={type}
               focusLogId={focusLogId}
               logDetail={logDetail}
               updateFocusLogId={updateFocusLogId}
+              style={{ width: this.state.detailWidth, flex: "none" }}
             />
           </div>
         </div>

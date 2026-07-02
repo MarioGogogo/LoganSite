@@ -29,8 +29,9 @@
 }
 
 .log-time {
-  color: #d9d9d9;
+  color: #8c8c8c;
   margin-right: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
 .log-tag {
@@ -60,12 +61,10 @@
 .log-abbr {
   flex: 1;
   overflow: hidden;
-  word-break: break-all;
-  // text-overflow: ellipsis;
-  // display: -webkit-box;
-  // -webkit-line-clamp: 1;
-  // -webkit-box-orient: vertical;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   margin-right: 10px;
+  color: #333;
 }
 
 .detail-button {
@@ -88,7 +87,18 @@
 .timeline-item {
   display: flex;
   width: 100%;
-  padding: 0 0 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: #fafafa;
+  }
+
+  .ant-timeline-item-content {
+    width: 100%;
+  }
 }
 
 .scroll-content {
