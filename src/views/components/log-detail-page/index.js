@@ -19,8 +19,17 @@ class LogDetailPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      detailWidth: 500
+      detailWidth: LogDetailPage.getDefaultDetailWidth()
     };
+  }
+
+  static getDefaultDetailWidth() {
+    if (typeof window === "undefined") return 420;
+    const vw = window.innerWidth;
+    // PC 宽屏：固定 420；更宽的屏幕适当放大；窄屏走堆叠布局，此值会被媒体查询覆盖
+    if (vw >= 1400) return 480;
+    if (vw >= 1100) return 420;
+    return 360;
   }
 
   componentWillUnmount() {
@@ -74,10 +83,7 @@ class LogDetailPage extends Component {
     const { upHasMore, downHasMore } = this._calculateUpHasMoreAndDownHasMore({briefs: briefs, startLogIndex: highlightStartIndex});
 
     return (
-      <div
-        className="logdetail-container"
-        style={{ "--detail-width": `${this.state.detailWidth}px` }}
-      >
+      <div className="logdetail-container">
         <div className="header">
           <Button icon="left" onClick={this.handleBackToListButtonClicked}>返回列表</Button>
           <LogInformation logInfo={logInfo} type={type}/>
@@ -127,12 +133,24 @@ class LogDetailPage extends Component {
                 onMouseDown={this.handleSplitterMouseDown}
               />
             )}
-            <LogDetailCard
-              type={type}
-              focusLogId={focusLogId}
-              logDetail={logDetail}
-              updateFocusLogId={updateFocusLogId}
-            />
+            {focusLogId === -1 ? (
+              <div
+                className="detail-placeholder"
+                style={{ width: this.state.detailWidth, flex: "0 0 " + this.state.detailWidth + "px" }}
+              >
+                <div className="detail-placeholder-inner">
+                  点击左侧任意日志查看详情
+                </div>
+              </div>
+            ) : (
+              <LogDetailCard
+                type={type}
+                focusLogId={focusLogId}
+                logDetail={logDetail}
+                updateFocusLogId={updateFocusLogId}
+                style={{ width: this.state.detailWidth, flex: "0 0 " + this.state.detailWidth + "px" }}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -9,8 +9,8 @@
 
   display: flex;
   flex-direction: column;
-  flex: none;
-  width: var(--detail-width, 500px);
+  flex: 0 0 420px;
+  min-width: 0;
 
   header {
     display: flex;
