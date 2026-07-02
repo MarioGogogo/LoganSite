@@ -46,3 +46,31 @@
     }
   }
 }
+
+/* H5 / 窄屏：堆叠布局，详情卡自适应宽度 */
+@media (max-width: 768px) {
+  .logdetail-container {
+    .content {
+      min-width: 0;
+      margin: 8px 0;
+      padding: 8px;
+
+      .detail-container {
+        flex-direction: column;
+
+        .layout-splitter {
+          display: none;
+        }
+
+        /* 详情卡在窄屏下宽度自适应、不再固定 */
+        .detail-information-container {
+          width: 100%;
+          margin-left: 0;
+          margin-top: 8px;
+          min-height: 200px;
+          max-height: none;
+        }
+      }
+    }
+  }
+}

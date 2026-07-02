@@ -74,7 +74,10 @@ class LogDetailPage extends Component {
     const { upHasMore, downHasMore } = this._calculateUpHasMoreAndDownHasMore({briefs: briefs, startLogIndex: highlightStartIndex});
 
     return (
-      <div className="logdetail-container">
+      <div
+        className="logdetail-container"
+        style={{ "--detail-width": `${this.state.detailWidth}px` }}
+      >
         <div className="header">
           <Button icon="left" onClick={this.handleBackToListButtonClicked}>返回列表</Button>
           <LogInformation logInfo={logInfo} type={type}/>
@@ -129,7 +132,6 @@ class LogDetailPage extends Component {
               focusLogId={focusLogId}
               logDetail={logDetail}
               updateFocusLogId={updateFocusLogId}
-              style={{ width: this.state.detailWidth, flex: "none" }}
             />
           </div>
         </div>
